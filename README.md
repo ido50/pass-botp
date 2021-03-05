@@ -1,6 +1,9 @@
 # pass-botp
 
-A [pass](https://www.passwordstore.org/) extension for managing TOTP Backup Codes
+A [pass](https://www.passwordstore.org/) extension for managing TOTP Backup Codes.
+Fork of [msmol/pass-botp](https://github.com/msmol/pass-botp) with modified
+storage format, support for storing backup codes inside the normal password
+files, and more compliant code.
 
 ## Usage
 
@@ -9,52 +12,58 @@ $ pass botp
 Usage: pass botp [--clip,-c] pass-name
 ```
 
-## Example
+For `pass-botp` to work, the backup codes must be stored in your passwords file
+with the following restrictions:
 
-`pass-botp` assumes your backup codes are stored line by line.
+1. The backup codes MUST be listed one by line at the end of the file.
+2. The backup codes MUST only be listed after a "botp:" header line.
+3. Each backup code must be prefixed with four spaces.
 
-The first line of your file *must* be `# pass-botp`. Without this header `pass-botp` will refuse to give you a backup code and will not modify the file.
-
-E.g. `backup_codes.gpg`:
+Example file _website.gpg_:
 
 ```
-# pass-botp
-111 111
+<password>
+login: <login>
+botp:
+    # 111 111
+    222 222
+    333 333
+    444 444
+```
+
+`pass-botp` will provide you with the first non-commented line, and then comment
+that line out:
+
+```
+$ pass botp website
 222 222
-333 333
-444 444
-...
 ```
 
-`pass-botp` will provide you with the first non-commented line, and then comment that line out:
+_website.gpg_ will now be:
 
 ```
-$ pass botp backup_codes
-111 111
+<password>
+login: <login>
+botp:
+    # 111 111
+    # 222 222
+    333 333
+    444 444
 ```
 
-`backup_codes.gpg` will now be:
-
-```
-# pass-botp
-# 111 111
-222 222
-333 333
-444 444
-...
-```
-
-On each subsequent run, `pass-botp` will give the next available backup code (in this case, `222 222`) until none remain.
+On each subsequent run, `pass-botp` will give the next available backup code
+(in this case, `333 333`) until none remain.
 
 ## Copying to clipboard
 
 Simply add `-c` or `--clip`
 
 ```
-$ pass botp -c backup_codes
-Copied Backup code for backup_codes to clipboard. Will clear in $PASSWORD_STORE_CLIP_TIME seconds.
+$ pass botp -c website
+Copied Backup code for website to clipboard. Will clear in $PASSWORD_STORE_CLIP_TIME seconds.
 ```
+
 ## Install
 
-- For Arch Linux users there is a package available in the [AUR](https://aur.archlinux.org/packages/pass-botp/)
-- For everyone else, simply drop `botp.bash` into your pass extensions directory. E.g. `/usr/lib/password-store/extensions/`
+Copy the [src/botp.bash](src/botp.bash) file into your pass extensions
+directory (usually `/usr/lib/password-store/extensions/`).
